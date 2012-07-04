@@ -1,0 +1,31 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.cgeo.liveview"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="10" />
+
+    <application android:label="@string/app_name"
+        android:icon="@drawable/icon">
+        <service android:name="com.sonyericsson.extras.liveview.plugins.template.TemplateService"
+				 android:label="Template plugin service">
+			<intent-filter>
+				<action android:name="com.sonyericsson.extras.liveview.plugins.template.templateservice"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+        </service>
+        <activity android:name="com.sonyericsson.extras.liveview.plugins.PluginPreferences" 
+				  android:label="Template plugin preferences">
+			<intent-filter>
+				<action android:name="com.sonyericsson.extras.liveview.plugins.template.PREFERENCES"></action> 	
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+        </activity>
+	    <receiver android:name="com.sonyericsson.extras.liveview.plugins.PluginReceiver">
+			<intent-filter>
+				<action android:name="com.sonyericsson.extras.liveview.LAUNCH_PLUGIN" />
+			</intent-filter>
+	    </receiver>
+    </application>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+</manifest>

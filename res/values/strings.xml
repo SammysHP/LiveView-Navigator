@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">LiveView Navigator</string>
+    <!-- 
+    	The following strings needs to be defined in order for the Plugin to function.
+    -->
+    <string name="pluginname">Plugin template</string>
+    <string name="intent_preferences">com.xxx.yyy.liveview.plugins.template.PREFERENCES</string>
+    <string name="intent_service">com.xxx.yyy.liveview.plugins.template.templateservice</string>
+    <string name="application_description">Extends:com.sonyericsson.extras.liveview</string>
+</resources>
