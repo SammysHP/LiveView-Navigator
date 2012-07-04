@@ -1,27 +1,4 @@
-/*
- * Copyright (c) 2010 Sony Ericsson
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * 
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-package com.sonyericsson.extras.liveview.plugins.template;
+package org.cgeo.liveview;
 
 import com.sonyericsson.extras.liveview.plugins.AbstractPluginService;
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
@@ -32,7 +9,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 
-public class TemplateService extends AbstractPluginService {
+public class LiveViewNavigatorService extends AbstractPluginService {
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
@@ -62,10 +39,11 @@ public class TemplateService extends AbstractPluginService {
 	}
 	
 	/**
-	 * Plugin is just sending notifications.
-	 */
+     * Plugin is sandbox.<br />
+     * This means that we cannot send notifications, but have the full display size (128x128 px) for rendering bitmaps.
+     */
 	protected boolean isSandboxPlugin() {
-	    return false;
+	    return true;
 	}
 	
 	/**

@@ -1,10 +1,14 @@
 <resources>
     <string name="app_name">LiveView Navigator</string>
+    
+    <string name="prefs_enabled">Enabled</string>
+    <string name="prefs_gpstimeout">GPS timeout</string>
+    <string name="prefs_gpstimeout_description">Turn off GPS after n minutes without activity.</string>
+    
     <!-- 
     	The following strings needs to be defined in order for the Plugin to function.
     -->
-    <string name="pluginname">Plugin template</string>
-    <string name="intent_preferences">com.xxx.yyy.liveview.plugins.template.PREFERENCES</string>
-    <string name="intent_service">com.xxx.yyy.liveview.plugins.template.templateservice</string>
-    <string name="application_description">Extends:com.sonyericsson.extras.liveview</string>
+    <string name="pluginname">LiveView Navigator</string>
+    <string name="intent_preferences">com.sonyericsson.extras.liveview.plugins.liveviewnavigator.PREFERENCES</string>
+    <string name="intent_service">com.sonyericsson.extras.liveview.plugins.liveviewnavigator.SERVICE</string>
 </resources>

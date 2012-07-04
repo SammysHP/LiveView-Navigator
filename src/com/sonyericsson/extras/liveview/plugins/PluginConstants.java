@@ -50,7 +50,7 @@ public final class PluginConstants {
     public static final String LIVEVIEW_SERVICE_BIND_INTENT = "com.sonyericsson.extras.liveview.PLUGIN_SERVICE_V1";
     
     // Log tag
-    public static final String LOG_TAG = "LiveViewPlugin";
+    public static final String LOG_TAG = "LVNav";
     
     // Buttons
     public static final String BUTTON_UP = "up";
