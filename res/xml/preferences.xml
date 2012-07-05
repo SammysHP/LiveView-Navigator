@@ -14,4 +14,10 @@
         android:summary="@string/prefs_gpstimeout_description"
         android:title="@string/prefs_gpstimeout" />
 
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="useMetricUnits"
+        android:order="0"
+        android:title="@string/prefs_usemetricunits" />
+
 </PreferenceScreen>
