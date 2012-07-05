@@ -3,7 +3,7 @@
     
     <string name="prefs_enabled">Enabled</string>
     <string name="prefs_gpstimeout">GPS timeout</string>
-    <string name="prefs_gpstimeout_description">Turn off GPS after n minutes without activity.</string>
+    <string name="prefs_gpstimeout_description">Turn off GPS after n minutes without activity. Press select on LiveView to enable it again.</string>
     <string name="prefs_usemetricunits">Use metric units</string>
     
     <!-- 

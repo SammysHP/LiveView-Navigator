@@ -12,12 +12,11 @@
         android:inputType="number"
         android:key="gpsTimeout"
         android:summary="@string/prefs_gpstimeout_description"
-        android:title="@string/prefs_gpstimeout" />
+        android:title="@string/prefs_gpstimeout" android:order="1"/>
 
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="useMetricUnits"
-        android:order="0"
-        android:title="@string/prefs_usemetricunits" />
+        android:title="@string/prefs_usemetricunits" android:order="2"/>
 
 </PreferenceScreen>
