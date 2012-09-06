@@ -6,13 +6,19 @@ import com.sonyericsson.extras.liveview.plugins.AbstractPluginService;
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
 
 public class LiveViewNavigatorService extends AbstractPluginService {
-    private NavigationThread navigationThread = null;
+    private static final long REFRESH_RATE = 2000;
+    
+    private LocationManager locationManager = null;
+    private NavigationLocationListener locationListener = null;
 
     @Override
     public void onStart(Intent intent, int startId) {
@@ -51,37 +57,15 @@ public class LiveViewNavigatorService extends AbstractPluginService {
      * Must be implemented. Starts plugin work, if any.
      */
     protected void startWork() {
-        // Check if plugin is enabled.
-        if (!mSharedPreferences.getBoolean(PluginConstants.PREFERENCES_PLUGIN_ENABLED, false)) {
-            return;
-        }
-
-        // be sure that there's no worker running
-        stopWork();
-
-        // clear the display
-        try {
-            mLiveViewAdapter.clearDisplay(mPluginId);
-        } catch (Exception e) {
-            Log.e(PluginConstants.LOG_TAG, "Failed to clear display.");
-        }
-
-        navigationThread = new NavigationThread(mLiveViewAdapter, mPluginId, new Geopoint(0, 0), 1 * 60 * 1000, true); // TODO
-        navigationThread.start();
     }
 
     /**
      * Must be implemented. Stops plugin work, if any.
      */
     protected void stopWork() {
-        if (navigationThread != null) {
-            navigationThread.stopThread();
-            try {
-                navigationThread.join();
-            } catch (InterruptedException e) {
-                Log.d(PluginConstants.LOG_TAG, "stopWork", e);
-            }
-            navigationThread = null;
+        if (locationListener != null && locationManager != null) {
+            locationManager.removeUpdates(locationListener);
+            locationListener = null;
         }
     }
 
@@ -125,8 +109,29 @@ public class LiveViewNavigatorService extends AbstractPluginService {
      */
     protected void startPlugin() {
         Log.d(PluginConstants.LOG_TAG, "startPlugin");
-        startWork();
+        
+        // Check if plugin is enabled.
+        if (!mSharedPreferences.getBoolean(PluginConstants.PREFERENCES_PLUGIN_ENABLED, false)) {
+            return;
+        }
 
+        // remove any previous location listener
+        stopWork();
+
+        // clear the display
+        try {
+            mLiveViewAdapter.clearDisplay(mPluginId);
+        } catch (Exception e) {
+            Log.e(PluginConstants.LOG_TAG, "Failed to clear display.");
+        }
+        
+        if (locationManager == null) {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        }
+
+        // add new location listener with current configuration
+        locationListener = new NavigationLocationListener(mLiveViewAdapter, mPluginId, new Geopoint(0, 0), 1 * 60 * 1000, true); // TODO
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, REFRESH_RATE, 0, locationListener);
     }
 
     /**
@@ -146,11 +151,11 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 
         if (PluginConstants.BUTTON_SELECT.equalsIgnoreCase(buttonType)) {
             // Reset the timer. If the timer already ran out, restart everything.
-            if (navigationThread != null && navigationThread.isAlive()) {
-                navigationThread.resetTimer();
-            } else {
-                startWork();
-            }
+//            if (navigationThread != null && navigationThread.isAlive()) {
+//                navigationThread.resetTimer();
+//            } else {
+//                startWork();
+//            } TODO
         }
     }
 
@@ -187,12 +192,12 @@ public class LiveViewNavigatorService extends AbstractPluginService {
         // Don't update screen while display is off (save battery), but keep the GPS on so that it's available on resume.
         // This might be a use case for the timeout: Display was turned off instead of closing the plugin.
         if (mode == PluginConstants.LIVE_SCREEN_MODE_ON) {
-            if (navigationThread != null) {
-                navigationThread.setDisplayRefresh(true);
+            if (locationListener != null) {
+                locationListener.setDisplayRefresh(true);
             }
         } else {
-            if (navigationThread != null) {
-                navigationThread.setDisplayRefresh(false);
+            if (locationListener != null) {
+                locationListener.setDisplayRefresh(false);
             }
         }
     }
