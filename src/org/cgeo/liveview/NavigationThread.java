@@ -1,12 +1,11 @@
 package org.cgeo.liveview;
 
 import android.util.Log;
+import cgeo.geocaching.geopoint.Geopoint;
 
 import com.sonyericsson.extras.liveview.plugins.LiveViewAdapter;
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
 import com.sonyericsson.extras.liveview.plugins.PluginUtils;
-
-import cgeo.geocaching.geopoint.Geopoint;
 
 public class NavigationThread extends Thread {
     private static final long REFRESH_RATE = 2000;
@@ -21,6 +20,8 @@ public class NavigationThread extends Thread {
     private final int pluginId;
     
     private int counter = 0; // TODO
+
+	private Geopoint currentLocation;
 
     public NavigationThread(final LiveViewAdapter liveView, final int pluginId, final Geopoint destination, final long timeout, final boolean useMetricUnits) {
         if (liveView == null) {
@@ -39,14 +40,22 @@ public class NavigationThread extends Thread {
 
     @Override
     public void run() {
-        // TODO: Start GPS
 
         resetTimer();
 
         while (!shouldStop && !timedOut()) {
             if (displayRefreshEnabled) {
                 // TODO: Refresh display
-                PluginUtils.sendTextBitmap(liveView, pluginId, Integer.toString(counter), 128, 60); // TODO
+				liveView.clearDisplay(pluginId);
+				liveView.screenOn(pluginId);
+				liveView.ledControl(pluginId, counter, 0, 100);
+				liveView.vibrateControl(pluginId, 0, 100);
+				liveView.vibrateControl(pluginId, 1000, 100);
+				if (currentLocation != null) {
+					PluginUtils.sendTextBitmap(liveView, pluginId, currentLocation.toString(), 128, 6);
+				} else {
+					PluginUtils.sendTextBitmap(liveView, pluginId, "No Location", 128, 10);
+				}
             }
             
             counter++; // TODO
@@ -92,4 +101,8 @@ public class NavigationThread extends Thread {
     public void setDisplayRefresh(final boolean enabled) {
         displayRefreshEnabled = enabled;
     }
+
+	public void setCurrentLocation(Geopoint geopoint) {
+		currentLocation = geopoint;
+	}
 }

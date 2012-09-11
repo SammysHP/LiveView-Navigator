@@ -3,6 +3,10 @@ package org.cgeo.liveview;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+import cgeo.geocaching.geopoint.Geopoint;
+import cgeo.geocaching.geopoint.GeopointFormatter;
+import cgeo.geocaching.geopoint.GeopointFormatter.Format;
 
 /**
  * This receiver updates the cached destination.<br />
@@ -18,8 +22,17 @@ public class UpdateReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        // TODO Auto-generated method stub
 
+		try {
+			Float latitude = (Float) intent.getExtras().get("latitude");
+			Float longitude = (Float) intent.getExtras().get("longitude");
+			Log.v("LiveView", new GeopointFormatter().format(Format.LAT_LON_DECMINUTE_RAW, new Geopoint(latitude, longitude)));
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
+
 
 }
