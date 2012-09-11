@@ -23,6 +23,10 @@
 
 package com.sonyericsson.extras.liveview.plugins;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -30,14 +34,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.Log;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Utils.
@@ -106,6 +107,38 @@ public final class PluginUtils {
         sendTextBitmap(liveView, pluginId, text, 64, 15);
     }
     
+	public static void drawAndSendScreen(LiveViewAdapter liveView, int pluginId, String dist, String dir) {
+		Log.d(PluginConstants.LOG_TAG, "Sending Textbitmap " + dist + " " + dir);
+		// Empty bitmap and link the canvas to it
+		Bitmap bitmap = null;
+		try {
+			bitmap = Bitmap.createBitmap(PluginConstants.LIVEVIEW_SCREEN_X, PluginConstants.LIVEVIEW_SCREEN_Y, Bitmap.Config.RGB_565);
+		} catch (IllegalArgumentException e) {
+			return;
+		}
+
+		Canvas canvas = new Canvas(bitmap);
+
+		// Set the text properties in the canvas
+		TextPaint textPaint = new TextPaint();
+		textPaint.setTextSize(16);
+		textPaint.setColor(Color.WHITE);
+
+		// Create the text layout and draw it to the canvas
+		Layout textLayout = new StaticLayout(dist, textPaint, PluginConstants.LIVEVIEW_SCREEN_X, Layout.Alignment.ALIGN_CENTER, 1, 1, false);
+		textLayout.draw(canvas);
+		Paint paint = new Paint();
+		paint.setColor(Color.RED);
+		canvas.drawLine(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
+		canvas.drawLine(0, bitmap.getHeight(), bitmap.getWidth(), 0, paint);
+
+		try {
+			liveView.sendImageAsBitmap(pluginId, centerX(bitmap), centerY(bitmap), bitmap);
+		} catch (Exception e) {
+			Log.d(PluginConstants.LOG_TAG, "Failed to send bitmap", e);
+		}
+	}
+    
     /**
      * Stores text to an image on file.
      * 
@@ -117,10 +150,11 @@ public final class PluginUtils {
      * @return Absolute path to file
      */
     public static void sendTextBitmap(LiveViewAdapter liveView, int pluginId, String text, int bitmapSizeX, int fontSize) {
+		Log.d(PluginConstants.LOG_TAG, "Sending Textbitmap " + text);
         // Empty bitmap and link the canvas to it
         Bitmap bitmap = null;
         try {
-            bitmap = Bitmap.createBitmap(bitmapSizeX, fontSize, Bitmap.Config.RGB_565);
+			bitmap = Bitmap.createBitmap(20, 20, Bitmap.Config.RGB_565);
         }
         catch(IllegalArgumentException  e) {
             return;
@@ -135,7 +169,11 @@ public final class PluginUtils {
 
         // Create the text layout and draw it to the canvas
         Layout textLayout = new StaticLayout(text, textPaint, bitmapSizeX, Layout.Alignment.ALIGN_CENTER, 1, 1, false);
-        textLayout.draw(canvas);
+		// textLayout.draw(canvas);
+		Paint paint = new Paint();
+		paint.setColor(Color.RED);
+		canvas.drawLine(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
+		canvas.drawLine(0, bitmap.getHeight(), bitmap.getWidth(), 0, paint);
         
         try
         { 
