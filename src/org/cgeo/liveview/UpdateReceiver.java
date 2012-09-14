@@ -28,19 +28,23 @@ public class UpdateReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
 		try {
-			Float latitude = (Float) intent.getExtras().get("latitude");
-			Float longitude = (Float) intent.getExtras().get("longitude");
-			SharedPreferences prefs = context.getSharedPreferences("org.cgeo.liveview_preferences", Context.MODE_WORLD_WRITEABLE);
-			Editor e = prefs.edit();
-			e.putFloat("latitude", latitude);
-			e.putFloat("longitude", longitude);
-			e.commit();
+			Double latitude = (Double) intent.getExtras().get("latitude");
+			Double longitude = (Double) intent.getExtras().get("longitude");
+			setDestination(context, latitude, longitude);
 			Log.v("LiveView received new Coords ", GeopointFormatter.format(Format.LAT_LON_DECMINUTE_RAW, new Geopoint(latitude, longitude)));
 			// context.getSharedPreferences(name, mode);
 		} catch (Exception e) {
 			Log.e(PluginConstants.LOG_TAG, "Error in UpdateReceiver", e);
 		}
     }
+
+	private void setDestination(Context context, Double latitude, Double longitude) {
+		SharedPreferences prefs = context.getSharedPreferences("org.cgeo.liveview_preferences", Context.MODE_WORLD_WRITEABLE);
+		Editor e = prefs.edit();
+		e.putLong("latitude", Double.doubleToLongBits(latitude));
+		e.putLong("longitude", Double.doubleToLongBits(longitude));
+		e.commit();
+	}
 
 
 }
