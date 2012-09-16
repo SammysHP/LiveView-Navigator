@@ -35,6 +35,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -46,7 +48,6 @@ import android.util.Log;
 public final class PluginUtils {
     
     private PluginUtils() {
-        
     }
     
     /**
@@ -107,12 +108,117 @@ public final class PluginUtils {
         sendTextBitmap(liveView, pluginId, text, 64, 15);
     }
     
-	public static void drawAndSendScreen(LiveViewAdapter liveView, int pluginId, String dist, String dir) {
+	/**
+	 * Draws the lveview c:geo screen.
+	 * 
+	 * @param liveView
+	 * @param pluginId
+	 * @param dist
+	 *            Distance
+	 * @param dir
+	 *            Direction
+	 */
+
+	public static void drawAndSendScreen(LiveViewAdapter liveView, int pluginId, Bitmap arrow, String dist, int dir) {
 		Log.d(PluginConstants.LOG_TAG, "Sending Textbitmap " + dist + " " + dir);
+
+		// rotateAndSend(liveView, pluginId, arrow, dir);
+		// liveView.sendImageAsBitmap(pluginId, centerX(arrow), centerY(arrow),
+		// arrow);
+		sendArrow(liveView, pluginId, dir);
+
+		sendTextBitmap(liveView, pluginId, dist, 128, 12, 0, 10);
+		sendTextBitmap(liveView, pluginId, dir + " °", 128, 12, 0, 110);
+	}
+
+	/**
+	 * Turns out rotating Image is too slow.
+	 * 
+	 * @param liveView
+	 * @param pluginId
+	 * @param dir
+	 */
+
+	private static void sendArrow(LiveViewAdapter liveView, int pluginId, int dir) {
+
+		Bitmap bitmap = null;
+		try {
+			bitmap = Bitmap.createBitmap(80, 80, Bitmap.Config.RGB_565);
+		} catch (IllegalArgumentException e) {
+			return;
+		}
+
+		Canvas canvas = new Canvas(bitmap);
+		double dirRad = Math.toRadians(dir + 90);
+		Point origin = new Point(40, 40);
+		Point p1 = rotateByRadians(origin, new Point(10, 40), dirRad);
+		Point p2 = rotateByRadians(origin, new Point(70, 35), dirRad);
+		Point p3 = rotateByRadians(origin, new Point(70, 45), dirRad);
+		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+		paint.setStrokeWidth(2);
+		paint.setColor(android.graphics.Color.RED);
+		paint.setStyle(Paint.Style.FILL_AND_STROKE);
+		paint.setAntiAlias(true);
+
+		Path path = new Path();
+		path.setFillType(Path.FillType.EVEN_ODD);
+		path.moveTo(p1.x, p1.y);
+		path.lineTo(p2.x, p2.y);
+		path.lineTo(p3.x, p3.y);
+		path.close();
+
+		canvas.drawPath(path, paint);
+		try {
+			liveView.sendImageAsBitmap(pluginId, centerX(bitmap), centerY(bitmap), bitmap);
+		} catch (Exception e) {
+			Log.d(PluginConstants.LOG_TAG, "Failed to send bitmap", e);
+		}
+	}
+
+	/**
+	 * Rotates the point by a specific number of radians about a specific origin
+	 * point.
+	 * 
+	 * @param origin
+	 *            The origin point about which to rotate the point
+	 * @param degrees
+	 *            The number of radians to rotate the point
+	 * @return
+	 */
+	public static Point rotateByRadians(Point origin, Point p, double radians) {
+		double cosVal = Math.cos(radians);
+		double sinVal = Math.sin(radians);
+
+		double ox = p.x - origin.x;
+		double oy = p.y - origin.y;
+
+		p.x = (int) (origin.x + ox * cosVal - oy * sinVal);
+		p.y = (int) (origin.y + ox * sinVal + oy * cosVal);
+		return p;
+	}
+
+	/**
+	 * Stores text to an image on file.
+	 * 
+	 * @param liveView
+	 *            Reference to LiveView connection
+	 * @param pluginId
+	 *            Id of the plugin
+	 * @param text
+	 *            The text string
+	 * @param bitmapSizeX
+	 *            Bitmap size X
+	 * @param fontSize
+	 *            Font size
+	 * @return Absolute path to file
+	 */
+	public static void sendTextBitmap(LiveViewAdapter liveView, int pluginId, String text, int bitmapSizeX, int fontSize, int x, int y) {
+		Log.d(PluginConstants.LOG_TAG, "Sending Textbitmap " + text);
 		// Empty bitmap and link the canvas to it
 		Bitmap bitmap = null;
 		try {
-			bitmap = Bitmap.createBitmap(PluginConstants.LIVEVIEW_SCREEN_X, PluginConstants.LIVEVIEW_SCREEN_Y, Bitmap.Config.RGB_565);
+			bitmap = Bitmap.createBitmap(bitmapSizeX, fontSize, Bitmap.Config.RGB_565);
 		} catch (IllegalArgumentException e) {
 			return;
 		}
@@ -121,24 +227,19 @@ public final class PluginUtils {
 
 		// Set the text properties in the canvas
 		TextPaint textPaint = new TextPaint();
-		textPaint.setTextSize(16);
+		textPaint.setTextSize(fontSize);
 		textPaint.setColor(Color.WHITE);
 
 		// Create the text layout and draw it to the canvas
-		Layout textLayout = new StaticLayout(dist, textPaint, PluginConstants.LIVEVIEW_SCREEN_X, Layout.Alignment.ALIGN_CENTER, 1, 1, false);
+		Layout textLayout = new StaticLayout(text, textPaint, bitmapSizeX, Layout.Alignment.ALIGN_CENTER, 1, 1, false);
 		textLayout.draw(canvas);
-		Paint paint = new Paint();
-		paint.setColor(Color.RED);
-		canvas.drawLine(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
-		canvas.drawLine(0, bitmap.getHeight(), bitmap.getWidth(), 0, paint);
 
 		try {
-			liveView.sendImageAsBitmap(pluginId, centerX(bitmap), centerY(bitmap), bitmap);
+			liveView.sendImageAsBitmap(pluginId, x, y, bitmap);
 		} catch (Exception e) {
 			Log.d(PluginConstants.LOG_TAG, "Failed to send bitmap", e);
 		}
 	}
-    
     /**
      * Stores text to an image on file.
      * 
@@ -154,7 +255,7 @@ public final class PluginUtils {
         // Empty bitmap and link the canvas to it
         Bitmap bitmap = null;
         try {
-			bitmap = Bitmap.createBitmap(20, 20, Bitmap.Config.RGB_565);
+            bitmap = Bitmap.createBitmap(bitmapSizeX, fontSize, Bitmap.Config.RGB_565);
         }
         catch(IllegalArgumentException  e) {
             return;
@@ -169,11 +270,7 @@ public final class PluginUtils {
 
         // Create the text layout and draw it to the canvas
         Layout textLayout = new StaticLayout(text, textPaint, bitmapSizeX, Layout.Alignment.ALIGN_CENTER, 1, 1, false);
-		// textLayout.draw(canvas);
-		Paint paint = new Paint();
-		paint.setColor(Color.RED);
-		canvas.drawLine(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
-		canvas.drawLine(0, bitmap.getHeight(), bitmap.getWidth(), 0, paint);
+        textLayout.draw(canvas);
         
         try
         { 
@@ -244,5 +341,13 @@ public final class PluginUtils {
     private static int centerY(Bitmap bitmap) {
         return (PluginConstants.LIVEVIEW_SCREEN_Y/2) - (bitmap.getHeight()/2);
     }
+
+	public static Bitmap convertToRGB565(Bitmap arrow) {
+		Bitmap b = Bitmap.createBitmap(arrow.getWidth(), arrow.getHeight(), Bitmap.Config.RGB_565);
+		Paint p = new Paint();
+		Canvas c = new Canvas(b);
+		c.drawBitmap(arrow, 0, 0, p);
+		return b;
+	}
 
 }
