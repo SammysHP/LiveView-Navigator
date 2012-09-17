@@ -101,7 +101,6 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		} catch (Exception e) {
 			Log.e(PluginConstants.LOG_TAG, "Failed to clear display.", e);
 		}
-		geoManager.removeUpdates(listener);
 
 		Bitmap arrow = BitmapFactory.decodeResource(getResources(), org.cgeo.liveview.R.drawable.arrow);
 		navigationThread = new NavigationThread(mLiveViewAdapter, mPluginId, 1 * 60 * 1000, true, arrow);
