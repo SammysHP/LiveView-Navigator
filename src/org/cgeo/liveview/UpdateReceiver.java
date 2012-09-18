@@ -31,7 +31,8 @@ public class UpdateReceiver extends BroadcastReceiver {
 			Double latitude = (Double) intent.getExtras().get("latitude");
 			Double longitude = (Double) intent.getExtras().get("longitude");
 			setDestination(context, latitude, longitude);
-			Log.v("LiveView received new Coords ", GeopointFormatter.format(Format.LAT_LON_DECMINUTE_RAW, new Geopoint(latitude, longitude)));
+			Log.d(PluginConstants.LOG_TAG,
+					"LiveView received new Coords " + GeopointFormatter.format(Format.LAT_LON_DECMINUTE_RAW, new Geopoint(latitude, longitude)));
 			// context.getSharedPreferences(name, mode);
 		} catch (Exception e) {
 			Log.e(PluginConstants.LOG_TAG, "Error in UpdateReceiver", e);

@@ -11,7 +11,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
-import cgeo.geocaching.geopoint.Geopoint;
 
 import com.sonyericsson.extras.liveview.plugins.AbstractPluginService;
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
@@ -34,7 +33,7 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		listener = new LiveViewLocationListener(navigationThread);
 		Location lastKnownLocation = geoManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		if (lastKnownLocation != null && navigationThread != null) {
-			navigationThread.setCurrentLocation(new Geopoint(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()));
+			navigationThread.setCurrentLocation(lastKnownLocation);
 		}
 		mSharedPreferences.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
 
@@ -43,7 +42,11 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 				latitude = Double.longBitsToDouble(mSharedPreferences.getLong(PluginConstants.PREFERENCES_LATITUDE, 0));
 				longitude = Double.longBitsToDouble(mSharedPreferences.getLong(PluginConstants.PREFERENCES_LONGITUDE, 0));
 				if (navigationThread != null) {
-					navigationThread.setDestination(new Geopoint(latitude, longitude));
+					Location destination = new Location("DEST");
+					destination.setLatitude(latitude);
+					destination.setLongitude(longitude);
+
+					navigationThread.setDestination(destination);
 				}
 			}
 		});
@@ -105,9 +108,13 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		Bitmap arrow = BitmapFactory.decodeResource(getResources(), org.cgeo.liveview.R.drawable.arrow);
 		navigationThread = new NavigationThread(mLiveViewAdapter, mPluginId, 1 * 60 * 1000, true, arrow);
 		navigationThread.start();
+		listener.setNavi(navigationThread);
 		if (latitude != null && longitude != null) {
-			navigationThread.setDestination(new Geopoint(latitude, longitude));
+			Location destination = new Location("DEST");
+			destination.setLatitude(latitude);
+			destination.setLongitude(longitude);
 
+			navigationThread.setDestination(destination);
 		}
 	}
 

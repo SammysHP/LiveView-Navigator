@@ -3,11 +3,18 @@ package org.cgeo.liveview;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
-import cgeo.geocaching.geopoint.Geopoint;
+import android.util.Log;
+
+import com.sonyericsson.extras.liveview.plugins.PluginConstants;
 
 public class LiveViewLocationListener implements LocationListener {
 
 	NavigationThread navi = null;
+
+	public void setNavi(NavigationThread navi) {
+		this.navi = navi;
+	}
+
 	private Location currentBestLocation;
 
 	public LiveViewLocationListener(NavigationThread navi) {
@@ -19,7 +26,9 @@ public class LiveViewLocationListener implements LocationListener {
 		if (isBetterLocation(location, currentBestLocation)) {
 			currentBestLocation = location;
 			if (navi != null) {
-				navi.setCurrentLocation(new Geopoint(location.getLatitude(), location.getLongitude()));
+				navi.setCurrentLocation(location);
+			} else {
+				Log.d(PluginConstants.LOG_TAG, "Location : Navi Null");
 			}
 		}
 	}
@@ -55,6 +64,7 @@ public class LiveViewLocationListener implements LocationListener {
 	 *            one
 	 */
 	protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+		Log.d(PluginConstants.LOG_TAG, "Location : check ");
 		if (currentBestLocation == null) {
 			// A new location is always better than no location
 			return true;
@@ -70,10 +80,12 @@ public class LiveViewLocationListener implements LocationListener {
 		// the new location
 		// because the user has likely moved
 		if (isSignificantlyNewer) {
+			Log.d(PluginConstants.LOG_TAG, "Location : isSignificantlyNewer ");
 			return true;
 			// If the new location is more than two minutes older, it must be
 			// worse
 		} else if (isSignificantlyOlder) {
+			Log.d(PluginConstants.LOG_TAG, "Location : isSignificantlyOlder ");
 			return false;
 		}
 
@@ -89,10 +101,13 @@ public class LiveViewLocationListener implements LocationListener {
 		// Determine location quality using a combination of timeliness and
 		// accuracy
 		if (isMoreAccurate) {
+			Log.d(PluginConstants.LOG_TAG, "Location : isMoreAccurate ");
 			return true;
 		} else if (isNewer && !isLessAccurate) {
+			Log.d(PluginConstants.LOG_TAG, "Location : isNewer && !isLessAccurate ");
 			return true;
 		} else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+			Log.d(PluginConstants.LOG_TAG, "Location : isNewer && !isSignificantlyLessAccurate && isFromSameProvider ");
 			return true;
 		}
 		return false;

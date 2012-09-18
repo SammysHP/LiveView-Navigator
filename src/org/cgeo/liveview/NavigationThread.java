@@ -3,8 +3,8 @@ package org.cgeo.liveview;
 import java.text.NumberFormat;
 
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.util.Log;
-import cgeo.geocaching.geopoint.Geopoint;
 
 import com.sonyericsson.extras.liveview.plugins.LiveViewAdapter;
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
@@ -14,8 +14,8 @@ public class NavigationThread extends Thread {
 	NumberFormat nf = NumberFormat.getNumberInstance();
     private static final long REFRESH_RATE = 2000;
 
-	private Geopoint lastPosition;
-	private Geopoint destination;
+	private Location lastPosition;
+	private Location destination;
     private volatile boolean displayRefreshEnabled = true;
     private volatile boolean shouldStop = false;
     private volatile long stopTime = 0;
@@ -23,8 +23,9 @@ public class NavigationThread extends Thread {
     private final boolean useMetricUnits;
     private final LiveViewAdapter liveView;
     private final int pluginId;
+	private int direction;
     
-	private Geopoint currentLocation;
+	private Location currentLocation;
 
 	private Bitmap arrow;
 
@@ -55,9 +56,10 @@ public class NavigationThread extends Thread {
 					// liveView.clearDisplay(pluginId);
 					if (currentLocation != null && destination != null) {
 						if (!currentLocation.equals(lastPosition)) {
-							float direction = currentLocation.bearingTo(destination);
+							float direction = currentLocation.bearingTo(destination) - currentLocation.bearingTo(lastPosition);
 							float distance = currentLocation.distanceTo(destination);
-							PluginUtils.drawAndSendScreen(liveView, pluginId, arrow, formatDistance(distance), (int) direction);
+							liveView.vibrateControl(pluginId, 0, 100);
+							PluginUtils.drawAndSendScreen(liveView, pluginId, arrow, formatDistance(distance), (int) direction, currentLocation.getProvider());
 							lastPosition = currentLocation;
 						}
 					} else {
@@ -86,10 +88,10 @@ public class NavigationThread extends Thread {
 	 */
 
 	private String formatDistance(float d) {
-		if (d < 1) {
-			return nf.format(d * 1000) + " m";
+		if (d < 1000) {
+			return nf.format(d) + " m";
 		} else {
-			return nf.format(d) + " km";
+			return nf.format(d / 1000) + " km";
 		}
 	}
 
@@ -116,6 +118,7 @@ public class NavigationThread extends Thread {
     public void stopThread() {
 		if (liveView != null) {
 			liveView.vibrateControl(pluginId, 0, 100);
+			liveView.vibrateControl(pluginId, 0, 100);
 		}
         shouldStop = true;
     }
@@ -129,12 +132,15 @@ public class NavigationThread extends Thread {
         displayRefreshEnabled = enabled;
     }
 
-	public void setCurrentLocation(Geopoint geopoint) {
-		currentLocation = geopoint;
+	public void setCurrentLocation(Location location) {
+		Log.d(PluginConstants.LOG_TAG, "Received new Location " + location.toString());
+		currentLocation = location;
 	}
 
-	public void setDestination(Geopoint geopoint) {
-		destination = geopoint;
+	public void setDestination(Location l) {
+		destination = l;
+		// Force Update
+		lastPosition = null;
 	}
 
 }

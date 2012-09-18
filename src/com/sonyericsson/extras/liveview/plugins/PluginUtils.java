@@ -117,18 +117,21 @@ public final class PluginUtils {
 	 *            Distance
 	 * @param dir
 	 *            Direction
+	 * @param provider
 	 */
 
-	public static void drawAndSendScreen(LiveViewAdapter liveView, int pluginId, Bitmap arrow, String dist, int dir) {
+	public static void drawAndSendScreen(LiveViewAdapter liveView, int pluginId, Bitmap arrow, String dist, int dir, String provider) {
 		Log.d(PluginConstants.LOG_TAG, "Sending Textbitmap " + dist + " " + dir);
 
 		// rotateAndSend(liveView, pluginId, arrow, dir);
 		// liveView.sendImageAsBitmap(pluginId, centerX(arrow), centerY(arrow),
 		// arrow);
+		liveView.vibrateControl(pluginId, 0, 100);
 		sendArrow(liveView, pluginId, dir);
 
-		sendTextBitmap(liveView, pluginId, dist, 128, 12, 0, 10);
-		sendTextBitmap(liveView, pluginId, dir + " °", 128, 12, 0, 110);
+		sendTextBitmap(liveView, pluginId, dist, 128, 16, 0, 10);
+		sendTextBitmap(liveView, pluginId, dir + " °", 60, 16, 34, 110);
+		sendTextBitmap(liveView, pluginId, provider.substring(0, 3), 28, 12, 100, 110);
 	}
 
 	/**
