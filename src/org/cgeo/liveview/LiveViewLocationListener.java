@@ -1,5 +1,6 @@
 package org.cgeo.liveview;
 
+import android.location.GpsStatus.NmeaListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
@@ -7,7 +8,7 @@ import android.util.Log;
 
 import com.sonyericsson.extras.liveview.plugins.PluginConstants;
 
-public class LiveViewLocationListener implements LocationListener {
+public class LiveViewLocationListener implements LocationListener, NmeaListener {
 
 	NavigationThread navi = null;
 
@@ -16,6 +17,7 @@ public class LiveViewLocationListener implements LocationListener {
 	}
 
 	private Location currentBestLocation;
+	private NMEASatParser nmeaParser = new NMEASatParser();
 
 	public LiveViewLocationListener(NavigationThread navi) {
 		this.navi = navi;
@@ -119,5 +121,19 @@ public class LiveViewLocationListener implements LocationListener {
 			return provider2 == null;
 		}
 		return provider1.equals(provider2);
+	}
+
+	@Override
+	public void onNmeaReceived(long timestamp, String nmea) {
+		if (nmeaParser != null) {
+			nmeaParser.parse(timestamp, nmea);
+
+			navi.setFixedSats(nmeaParser.getFixedSats());
+			navi.setVisibleSatCount(nmeaParser.getVisibleSatCount());
+		}
+		// if (nmea.startsWith("$GPGSV")) {
+		// Log.d(PluginConstants.LOG_TAG, nmea);
+		// }
+
 	}
 }

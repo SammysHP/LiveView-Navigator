@@ -95,8 +95,9 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 
 		// be sure that there's no worker running
 		stopWork();
-		geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, listener);
-		geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, listener);
+		geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+		geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+		geoManager.addNmeaListener(listener);
 
 		// clear the display
 		try {
