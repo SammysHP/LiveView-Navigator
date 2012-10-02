@@ -17,8 +17,6 @@ import com.sonyericsson.extras.liveview.plugins.PluginConstants;
 
 public class LiveViewNavigatorService extends AbstractPluginService {
 	private NavigationThread navigationThread = null;
-	private LocationManager geoManager;
-	private LiveViewLocationListener listener;
 	private Double latitude;
 	private Double longitude;
 
@@ -29,8 +27,7 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
-		geoManager = (LocationManager) getApplication().getSystemService(Context.LOCATION_SERVICE);
-		listener = new LiveViewLocationListener(navigationThread);
+		LocationManager geoManager = (LocationManager) getApplication().getSystemService(Context.LOCATION_SERVICE);
 		Location lastKnownLocation = geoManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		if (lastKnownLocation != null && navigationThread != null) {
 			navigationThread.setCurrentLocation(lastKnownLocation);
@@ -95,9 +92,6 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 
 		// be sure that there's no worker running
 		stopWork();
-		geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
-		geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
-		geoManager.addNmeaListener(listener);
 
 		// clear the display
 		try {
@@ -109,7 +103,6 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		Bitmap arrow = BitmapFactory.decodeResource(getResources(), org.cgeo.liveview.R.drawable.arrow);
 		navigationThread = new NavigationThread(mLiveViewAdapter, mPluginId, 1 * 60 * 1000, true, arrow);
 		navigationThread.start();
-		listener.setNavi(navigationThread);
 		if (latitude != null && longitude != null) {
 			Location destination = new Location("DEST");
 			destination.setLatitude(latitude);
@@ -133,7 +126,6 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 			}
 			navigationThread = null;
 		}
-		geoManager.removeUpdates(listener);
 	}
 
 	/**

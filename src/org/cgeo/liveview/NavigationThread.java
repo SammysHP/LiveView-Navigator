@@ -4,6 +4,7 @@ import java.text.NumberFormat;
 
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 
 import com.sonyericsson.extras.liveview.plugins.LiveViewAdapter;
@@ -12,41 +13,44 @@ import com.sonyericsson.extras.liveview.plugins.PluginUtils;
 
 public class NavigationThread extends Thread {
 	NumberFormat nf = NumberFormat.getNumberInstance();
-    private static final long REFRESH_RATE = 2000;
+	private static final long REFRESH_RATE = 2000;
 
 	private Location lastPosition;
 	private Location destination;
-    private volatile boolean displayRefreshEnabled = true;
-    private volatile boolean shouldStop = false;
-    private volatile long stopTime = 0;
-    private final long timeout;
-    private final boolean useMetricUnits;
-    private final LiveViewAdapter liveView;
-    private final int pluginId;
+	private volatile boolean displayRefreshEnabled = true;
+	private volatile boolean shouldStop = false;
+	private volatile long stopTime = 0;
+	private final long timeout;
+	private final boolean useMetricUnits;
+	private final LiveViewAdapter liveView;
+	private final int pluginId;
 	/** The number of satellites that are visible. */
 	private int visibleSatCount = -1;
 	/** The number of satellites that have a fix. */
 	private int fixedSats = -1;
-    
+
+	private LocationManager geoManager;
+	private LiveViewLocationListener listener;
+
 	private Location currentLocation;
 
 	private Bitmap arrow;
 	private boolean satsDirty = true;
 
-	public NavigationThread(final LiveViewAdapter liveView, final int pluginId, final long timeout, final boolean useMetricUnits,
-			final Bitmap arrow) {
-        if (liveView == null) {
-            throw new IllegalArgumentException("liveView must not be null");
-        }
+	public NavigationThread(final LiveViewAdapter liveView, final int pluginId, final long timeout, final boolean useMetricUnits, final Bitmap arrow) {
+		if (liveView == null) {
+			throw new IllegalArgumentException("liveView must not be null");
+		}
 
-        this.liveView = liveView;
-        this.pluginId = pluginId;
-        this.timeout = timeout;
-        this.useMetricUnits = useMetricUnits;
+		this.liveView = liveView;
+		this.pluginId = pluginId;
+		this.timeout = timeout;
+		this.useMetricUnits = useMetricUnits;
 		// this.arrow = PluginUtils.convertToRGB565(arrow);
 		this.arrow = arrow;
 		nf.setMaximumFractionDigits(2);
-    }
+		listener = new LiveViewLocationListener(this);
+	}
 
 	/**
 	 * Formats the given distance
@@ -79,19 +83,26 @@ public class NavigationThread extends Thread {
 		stopTime = System.currentTimeMillis() + timeout;
 	}
 
-    @Override
-    public void run() {
+	@Override
+	public void run() {
 
-        try {
+		try {
 			resetTimer();
+			geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+			geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+			geoManager.addNmeaListener(listener);
 
 			while (!shouldStop && !timedOut()) {
-			    if (displayRefreshEnabled) {
-			        // TODO: Refresh display
+				if (displayRefreshEnabled) {
+					// TODO: Refresh display
 					// liveView.clearDisplay(pluginId);
 					if (currentLocation != null && destination != null) {
 						if (!currentLocation.equals(lastPosition)) {
-							float direction = currentLocation.bearingTo(destination) - (lastPosition != null ? currentLocation.bearingTo(lastPosition) : 0);
+							// float direction =
+							// currentLocation.bearingTo(destination) -
+							// (lastPosition != null ?
+							// currentLocation.bearingTo(lastPosition) : 0);
+							float direction = currentLocation.bearingTo(destination) - currentLocation.getBearing();
 							float distance = currentLocation.distanceTo(destination);
 							liveView.vibrateControl(pluginId, 0, 100);
 							PluginUtils.drawAndSendScreen(liveView, pluginId, arrow, formatDistance(distance), (int) direction, currentLocation.getProvider());
@@ -106,18 +117,23 @@ public class NavigationThread extends Thread {
 						PluginUtils.sendTextBitmap(liveView, pluginId, "" + fixedSats + "/" + visibleSatCount, 30, 12, 4, 110);
 						satsDirty = false;
 					}
-			    }
-			    
-			    try {
-			        sleep(REFRESH_RATE);
-			    } catch (InterruptedException e) {
-			        Log.d(PluginConstants.LOG_TAG, "NavigationThread: thread interrupted");
-			    }
+				}
+
+				try {
+					sleep(REFRESH_RATE);
+				} catch (InterruptedException e) {
+					Log.d(PluginConstants.LOG_TAG, "NavigationThread: thread interrupted");
+				}
 			}
 		} catch (Exception e) {
 			Log.e(PluginConstants.LOG_TAG, "NavigationThread Crashed ", e);
+		} finally {
+			if (geoManager != null && listener != null) {
+				geoManager.removeUpdates(listener);
+			}
+
 		}
-    }
+	}
 
 	public void setCurrentLocation(Location location) {
 		Log.d(PluginConstants.LOG_TAG, "Received new Location " + location.toString());
@@ -137,7 +153,7 @@ public class NavigationThread extends Thread {
 	 */
 	public void setDisplayRefresh(final boolean enabled) {
 		displayRefreshEnabled = enabled;
-    }
+	}
 
 	public void setFixedSats(int fixedSats) {
 		satsDirty |= (fixedSats != this.fixedSats);
@@ -152,13 +168,13 @@ public class NavigationThread extends Thread {
 	/**
 	 * Stop the thread with the next cycle. There is no way to enable it again.
 	 */
-    public void stopThread() {
+	public void stopThread() {
 		if (liveView != null) {
 			liveView.vibrateControl(pluginId, 0, 100);
 			liveView.vibrateControl(pluginId, 0, 100);
 		}
-        shouldStop = true;
-    }
+		shouldStop = true;
+	}
 
 	/**
 	 * The thread runs longer than the given timeout. You can reset this timer
@@ -168,6 +184,6 @@ public class NavigationThread extends Thread {
 	 */
 	private boolean timedOut() {
 		return System.currentTimeMillis() > stopTime;
-    }
+	}
 
 }
