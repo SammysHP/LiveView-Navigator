@@ -45,6 +45,7 @@ public class NMEASatParser {
 		// A Automatic 2D,3D
 		String mode = msg[1];
 		// 1=no Fix, 2=2D Fix, 3=3D Fix
+		fixedSats = 0;
 		int fix = Integer.parseInt(msg[2]);
 		for (int i = 3; i < msg.length - 3; i++) {
 			String sat = msg[i];
