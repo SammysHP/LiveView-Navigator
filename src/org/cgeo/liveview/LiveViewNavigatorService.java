@@ -27,11 +27,6 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
-		LocationManager geoManager = (LocationManager) getApplication().getSystemService(Context.LOCATION_SERVICE);
-		Location lastKnownLocation = geoManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (lastKnownLocation != null && navigationThread != null) {
-			navigationThread.setCurrentLocation(lastKnownLocation);
-		}
 		mSharedPreferences.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
 
 			@Override
@@ -101,7 +96,10 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		}
 
 		Bitmap arrow = BitmapFactory.decodeResource(getResources(), org.cgeo.liveview.R.drawable.arrow);
-		navigationThread = new NavigationThread(mLiveViewAdapter, mPluginId, 1 * 60 * 1000, true, arrow);
+		navigationThread = new NavigationThread(this, mPluginId,
+				Long.parseLong(mSharedPreferences.getString(PluginConstants.PREFERENCES_GPS_TIMEOUT, "60000")), true, arrow);
+		LocationManager geoManager = (LocationManager) getApplication().getSystemService(Context.LOCATION_SERVICE);
+		navigationThread.setGeoManager(geoManager);
 		navigationThread.start();
 		if (latitude != null && longitude != null) {
 			Location destination = new Location("DEST");

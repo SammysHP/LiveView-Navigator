@@ -47,6 +47,7 @@ public final class PluginConstants {
     public static final String PREFERENCES_PLUGIN_ENABLED = "pluginEnabled";
 	public static final String PREFERENCES_LATITUDE = "latitude";
 	public static final String PREFERENCES_LONGITUDE = "longitude";
+	public static final String PREFERENCES_GPS_TIMEOUT = "gpsTimeout";
     
     // LiveView Service bind intent
     public static final String LIVEVIEW_SERVICE_BIND_INTENT = "com.sonyericsson.extras.liveview.PLUGIN_SERVICE_V1";

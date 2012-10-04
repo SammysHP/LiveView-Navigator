@@ -5,6 +5,9 @@ import java.text.NumberFormat;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.Message;
 import android.util.Log;
 
 import com.sonyericsson.extras.liveview.plugins.LiveViewAdapter;
@@ -36,13 +39,37 @@ public class NavigationThread extends Thread {
 
 	private Bitmap arrow;
 	private boolean satsDirty = true;
+	private LiveViewNavigatorService liveViewNavigatorService;
 
-	public NavigationThread(final LiveViewAdapter liveView, final int pluginId, final long timeout, final boolean useMetricUnits, final Bitmap arrow) {
-		if (liveView == null) {
+	Handler registerListener = new Handler(new Callback() {
+
+		@Override
+		public boolean handleMessage(Message msg) {
+			geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+			geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+			geoManager.addNmeaListener(listener);
+			return true;
+		}
+	});
+
+	/**
+	 * CT
+	 * 
+	 * @param liveViewNavigatorService
+	 * @param pluginId
+	 * @param timeout
+	 * @param useMetricUnits
+	 * @param arrow
+	 */
+
+	public NavigationThread(final LiveViewNavigatorService liveViewNavigatorService, final int pluginId, final long timeout, final boolean useMetricUnits,
+			final Bitmap arrow) {
+		if (liveViewNavigatorService == null) {
 			throw new IllegalArgumentException("liveView must not be null");
 		}
 
-		this.liveView = liveView;
+		this.liveView = liveViewNavigatorService.getmLiveViewAdapter();
+		this.liveViewNavigatorService = liveViewNavigatorService;
 		this.pluginId = pluginId;
 		this.timeout = timeout;
 		this.useMetricUnits = useMetricUnits;
@@ -50,6 +77,14 @@ public class NavigationThread extends Thread {
 		this.arrow = arrow;
 		nf.setMaximumFractionDigits(2);
 		listener = new LiveViewLocationListener(this);
+	}
+
+	public void setGeoManager(LocationManager geoManager) {
+		this.geoManager = geoManager;
+		Location lastKnownLocation = geoManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		if (lastKnownLocation != null) {
+			setCurrentLocation(lastKnownLocation);
+		}
 	}
 
 	/**
@@ -88,9 +123,7 @@ public class NavigationThread extends Thread {
 
 		try {
 			resetTimer();
-			geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
-			geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
-			geoManager.addNmeaListener(listener);
+			registerListener.sendEmptyMessage(0);
 
 			while (!shouldStop && !timedOut()) {
 				if (displayRefreshEnabled) {
