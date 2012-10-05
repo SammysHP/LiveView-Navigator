@@ -23,9 +23,6 @@
 
 package com.sonyericsson.extras.liveview.plugins;
 
-import com.sonyericsson.extras.liveview.IPluginServiceCallbackV1;
-import com.sonyericsson.extras.liveview.IPluginServiceV1;
-
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -37,6 +34,9 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.sonyericsson.extras.liveview.IPluginServiceCallbackV1;
+import com.sonyericsson.extras.liveview.IPluginServiceV1;
 
 /**
  * Base implementation of the plug-in service.
@@ -58,7 +58,7 @@ public abstract class AbstractPluginService extends Service {
     // LiveView adapter reference
     protected LiveViewAdapter mLiveViewAdapter = null;
 
-    // Menu icon that will be shown in LiveView unit
+	// Menu icon that will be shown in LiveView unit
     protected String mMenuIcon = null;
 
     // Launcher intent for the implemented service
@@ -407,4 +407,11 @@ public abstract class AbstractPluginService extends Service {
         mSharedPreferences = prefs;
     }
 
+	public LiveViewAdapter getmLiveViewAdapter() {
+		return mLiveViewAdapter;
+	}
+
+	public void setmLiveViewAdapter(LiveViewAdapter mLiveViewAdapter) {
+		this.mLiveViewAdapter = mLiveViewAdapter;
+	}
 }
