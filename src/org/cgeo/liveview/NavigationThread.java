@@ -17,12 +17,13 @@ import com.sonyericsson.extras.liveview.plugins.PluginUtils;
 public class NavigationThread extends Thread {
 	NumberFormat nf = NumberFormat.getNumberInstance();
 	private static final long REFRESH_RATE = 2000;
+	private static final int REGISTER = 0;
 
 	private Location lastPosition;
 	private Location destination;
 	private volatile boolean displayRefreshEnabled = true;
 	private volatile boolean shouldStop = false;
-	private volatile long stopTime = 0;
+	private volatile long stopTime = Long.MAX_VALUE;
 	private final long timeout;
 	private final boolean useMetricUnits;
 	private final LiveViewAdapter liveView;
@@ -48,6 +49,7 @@ public class NavigationThread extends Thread {
 			geoManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
 			geoManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
 			geoManager.addNmeaListener(listener);
+			Log.d(PluginConstants.LOG_TAG, "Registered Location Listener");
 			return true;
 		}
 	});
@@ -123,7 +125,8 @@ public class NavigationThread extends Thread {
 
 		try {
 			resetTimer();
-			registerListener.sendEmptyMessage(0);
+			listener.setNavi(this);
+			registerListener.sendEmptyMessage(REGISTER);
 
 			while (!shouldStop && !timedOut()) {
 				if (displayRefreshEnabled) {
@@ -163,6 +166,7 @@ public class NavigationThread extends Thread {
 		} finally {
 			if (geoManager != null && listener != null) {
 				geoManager.removeUpdates(listener);
+				Log.d(PluginConstants.LOG_TAG, "Removed Location Listener");
 			}
 
 		}
@@ -216,7 +220,11 @@ public class NavigationThread extends Thread {
 	 * @return If timout reached or not.
 	 */
 	private boolean timedOut() {
-		return System.currentTimeMillis() > stopTime;
+		boolean timedOut = System.currentTimeMillis() > stopTime;
+		if (timedOut) {
+			Log.d(PluginConstants.LOG_TAG, "Navthread timed out");
+		}
+		return timedOut;
 	}
 
 }

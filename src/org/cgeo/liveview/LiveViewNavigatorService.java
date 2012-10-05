@@ -96,8 +96,8 @@ public class LiveViewNavigatorService extends AbstractPluginService {
 		}
 
 		Bitmap arrow = BitmapFactory.decodeResource(getResources(), org.cgeo.liveview.R.drawable.arrow);
-		navigationThread = new NavigationThread(this, mPluginId,
-				Long.parseLong(mSharedPreferences.getString(PluginConstants.PREFERENCES_GPS_TIMEOUT, "60000")), true, arrow);
+		long timeout = Long.parseLong(mSharedPreferences.getString(PluginConstants.PREFERENCES_GPS_TIMEOUT, "5")) * 60000;
+		navigationThread = new NavigationThread(this, mPluginId, timeout, true, arrow);
 		LocationManager geoManager = (LocationManager) getApplication().getSystemService(Context.LOCATION_SERVICE);
 		navigationThread.setGeoManager(geoManager);
 		navigationThread.start();
